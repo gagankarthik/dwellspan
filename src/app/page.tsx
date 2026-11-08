@@ -1,69 +1,137 @@
 import Image from "next/image";
+import Link from "next/link";
+import { CityExplorer } from "@/components/CityExplorer";
+import { Footer } from "@/components/Footer";
+import { HeroSearch } from "@/components/HeroSearch";
+import { ArrowIcon } from "@/components/icons";
+import { ListingCard } from "@/components/ListingCard";
+import { Nav } from "@/components/Nav";
+import { Reveal } from "@/components/Reveal";
+import { TaglineReveal } from "@/components/TaglineReveal";
+import { Container } from "@/components/ui";
+import { offers } from "@/lib/listingDetails";
+import { heroImages, listings } from "@/lib/listings";
+
+/*
+ * The landing page stays focused on homes. Sections are separated by
+ * background and imagery, never by rules: photo, white, photo, mist, white.
+ * Full search lives on /explore, renter details on /how-it-works, owners on /platform.
+ */
+
+const featured = [...listings].sort((a, b) => b.rating - a.rating).slice(0, 8);
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <>
+      <Nav />
+      <main id="main">
+        <HeroSearch />
+
+        {/* Featured homes */}
+        <section aria-labelledby="featured-title" className="py-16">
+          <Container>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="featured-title" className="heading-2 text-ink">
+                  Our highest rated homes
+                </h2>
+                <p className="mt-2 max-w-[60ch] body-3 text-ink-2">
+                  Every one rated 4.8 or higher by renters who lived there.
+                </p>
+              </div>
+            </div>
+            <ul className="mt-8 grid gap-x-4 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+              {featured.map((l) => (
+                <li key={l.id}>
+                  <ListingCard listing={l} offer={offers[l.id]} />
+                </li>
+              ))}
+            </ul>
+            <div className="mt-12 flex justify-center">
+              <Link href="/explore" className="btn-primary button-md">
+                View all homes <ArrowIcon className="size-4" />
+              </Link>
+            </div>
+          </Container>
+        </section>
+
+        {/* Tagline on a photo */}
+        <section aria-label="What Dwellspan does" className="relative isolate flex min-h-[70vh] items-center py-16 text-paper">
+          <Image src={heroImages.top.src} alt="" fill sizes="100vw" className="-z-10 object-cover" />
+          <div className="absolute inset-0 -z-10 bg-[rgb(12_18_40/0.78)]" aria-hidden />
+          <Container>
+            <TaglineReveal
+              lines={["Three months for a new job.", "A year near the right school.", "One place to find them both."]}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <ul className="mx-auto mt-12 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
+              {[
+                ["Every fee up front", "See the full monthly cost before you book or sign. No surprises at move in."],
+                ["Move in ready", "Furnished stays arrive ready to live in, down to the door code on day one."],
+                ["One app for all of it", "Book or sign, pay rent, and request repairs from the same place."],
+              ].map(([t, b]) => (
+                <li key={t}>
+                  <p className="subhead">{t}</p>
+                  <p className="mx-auto mt-2 max-w-[32ch] body-6 text-paper">{b}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-12 text-center">
+              <Link
+                href="/how-it-works"
+                className="focus-ring-dark inline-flex items-center gap-2 rounded-lg bg-paper px-4 py-2 button-md text-ink shadow-lg transition-[transform,background-color] duration-300 ease-base hover:-translate-y-px hover:bg-sand active:scale-[0.98]"
+              >
+                See how renting works <ArrowIcon className="size-4" />
+              </Link>
+            </p>
+          </Container>
+        </section>
+
+        {/* Cities by state */}
+        <section aria-labelledby="cities-title" className="bg-sand py-16">
+          <Container>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="cities-title" className="heading-2 text-ink">
+                  Find your next neighborhood
+                </h2>
+                <p className="mt-2 max-w-[60ch] body-3 text-ink-2">Popular cities in every state we serve.</p>
+              </div>
+            </div>
+            <Reveal className="mt-8">
+              <CityExplorer />
+            </Reveal>
+            <p className="mt-12 text-center">
+              <Link href="/explore" className="btn-secondary button-md">
+                Browse every city <ArrowIcon className="size-4" />
+              </Link>
+            </p>
+          </Container>
+        </section>
+
+        {/* Closing CTA for renters */}
+        <section aria-labelledby="cta-title" className="py-16">
+          <Container>
+            <div className="relative isolate flex min-h-96 flex-col items-center justify-center overflow-hidden rounded-3xl px-6 py-16 text-center text-paper">
+              <Image src={heroImages.bottom.src} alt="" fill sizes="100vw" className="-z-10 object-cover" />
+              <div className="absolute inset-0 -z-10 bg-[rgb(12_18_40/0.62)]" aria-hidden />
+              <h2 id="cta-title" className="max-w-[680px] heading-1">
+                Your next home is
+                <br className="hidden sm:block" /> one search away
+              </h2>
+              <p className="mt-4 max-w-[52ch] lead text-paper">
+                Furnished stays from one month and long term leases, with photos, reviews, and every fee shown up front.
+              </p>
+              <Link
+                href="/explore"
+                className="focus-ring-dark mt-8 inline-flex h-12 items-center gap-2 rounded-lg bg-paper px-6 button-md text-ink shadow-lg transition-[transform,background-color] duration-300 ease-base hover:-translate-y-px hover:bg-sand active:scale-[0.98]"
+              >
+                Start exploring <ArrowIcon className="size-4" />
+              </Link>
+            </div>
+          </Container>
+        </section>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }

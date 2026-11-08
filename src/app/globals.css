@@ -1,26 +1,188 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Dwellspan design system
+ *
+ * Palette, 60 / 30 / 10
+ *   60  Dominant   paper            page canvas, cards
+ *   30  Secondary  sand + ink        alternate sections, borders, text, dark bands
+ *   10  Accent     brand green      CTAs, links, icons, kickers, selected states
+ *
+ * Spacing: 8, 16, 24, 32, 48, 64 only. 4px is reserved for micro badges and
+ * compact icon padding.
+ *
+ * Type: 39 / 31 / 25 / 20 / 16 (major third). Display line height 1.15 to 1.2,
+ * body 1.5. Running text is capped at 60ch (about 70 characters).
+ *
+ * Shadows are tinted with the brand hue, never black, and blur = 2 × y offset.
+ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  /* 60: dominant */
+  --color-paper: #ffffff;
+
+  /* 30: secondary, light neutrals (sand is the light gray section surface) */
+  --color-sand: #f7f7f7;
+  --color-line: #dddddd;
+  --color-ink: #1f1f1f;
+  --color-ink-2: #4a4a4a;
+  --color-ink-3: #6a6a6a;
+
+  /* 30: secondary, dark surfaces */
+  --color-base: #000000;
+  --color-surface-1: #181818;
+  --color-surface-2: #1f1f1f;
+  --color-surface-3: #272727;
+  --color-surface-4: #313131;
+  --color-fg: #ffffff;
+  --color-muted: #b0b0b0;
+  --color-subtle: #8f8f8f;
+
+  /* 10: accent */
+  --color-brand: #2350d9;
+  --color-brand-hover: #1b3fb0;
+  --color-brand-soft: #eaf0fe;
+  --color-brand-bright: #9db7ff;
+  /* Second chart series (leases), paired with brand; always shown with a label */
+  --color-amber: #c77b1a;
+
+  /* System states only */
+  --color-error: #b42318;
+  --color-danger: #ff8a80;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tinted shadows, blur is always twice the y offset */
+  --shadow-sm: 0 2px 4px rgb(20 33 82 / 0.06);
+  --shadow-md: 0 4px 8px rgb(20 33 82 / 0.08);
+  --shadow-lg: 0 8px 16px rgb(20 33 82 / 0.1);
+  --shadow-xl: 0 16px 32px rgb(20 33 82 / 0.12);
+  --shadow-2xl: 0 24px 48px rgb(20 33 82 / 0.18);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ---------- Type hierarchy ---------- */
+
+/* Display */
+@utility heading-1 { font-size: 39px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+@utility heading-2 { font-size: 31px; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
+@utility heading-3 { font-size: 25px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; }
+
+/* Subhead, 20px */
+@utility subhead { font-size: 20px; line-height: 1.4; font-weight: 600; }
+@utility title-1 { font-size: 20px; line-height: 1.4; font-weight: 500; }
+@utility lead { font-size: 20px; line-height: 1.5; font-weight: 400; }
+
+/* Body, 16px base */
+@utility title-3 { font-size: 16px; line-height: 1.5; font-weight: 500; }
+@utility body-1 { font-size: 16px; line-height: 1.5; font-weight: 600; }
+@utility body-2 { font-size: 16px; line-height: 1.5; font-weight: 500; }
+@utility body-3 { font-size: 16px; line-height: 1.5; font-weight: 400; }
+
+/* Small, 14px */
+@utility title-4 { font-size: 14px; line-height: 1.5; font-weight: 500; }
+@utility body-4 { font-size: 14px; line-height: 1.5; font-weight: 600; }
+@utility body-5 { font-size: 14px; line-height: 1.5; font-weight: 500; }
+@utility body-6 { font-size: 14px; line-height: 1.5; font-weight: 400; }
+@utility caption-1 { font-size: 14px; line-height: 1.5; font-weight: 500; }
+@utility caption-2 { font-size: 14px; line-height: 1.5; font-weight: 400; }
+
+/* Caption, 12px, for metadata and micro badges only */
+@utility title-5 { font-size: 12px; line-height: 1.5; font-weight: 500; }
+@utility caption-3 { font-size: 12px; line-height: 1.5; font-weight: 600; }
+@utility caption-4 { font-size: 12px; line-height: 1.5; font-weight: 500; }
+@utility caption-5 { font-size: 12px; line-height: 1.5; font-weight: 400; }
+
+/* Buttons */
+@utility button-md { font-size: 16px; line-height: 1.5; font-weight: 600; }
+@utility button-sm { font-size: 14px; line-height: 1.5; font-weight: 600; }
+@utility button-xsm { font-size: 12px; line-height: 1.5; font-weight: 600; }
+
+/* Ideal measure for running text */
+@utility measure { max-width: 60ch; }
+
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans), system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+  h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+  p, li, dd { text-wrap: pretty; }
+  em, i { font-style: normal; }
+  ::selection { background: var(--color-brand-soft); }
+}
+
+/* ---------- Buttons ---------- */
+
+@utility btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 16px; border-radius: var(--radius-lg);
+  background: var(--color-brand); color: var(--color-paper);
+  transition: transform 500ms var(--ease-base), box-shadow 300ms var(--ease-base), background-color 300ms var(--ease-base);
+  &:hover { background: var(--color-brand-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  &:active { transform: scale(0.98); box-shadow: none; }
+  &:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+}
+/* Accent on dark surfaces: the bright tint of the same green */
+@utility btn-on-dark {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 16px; border-radius: var(--radius-lg);
+  background: var(--color-brand-bright); color: var(--color-ink);
+  transition: transform 500ms var(--ease-base), opacity 300ms var(--ease-base), background-color 300ms var(--ease-base);
+  &:hover { background: #b7caff; transform: translateY(-1px); }
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid var(--color-brand-bright); outline-offset: 2px; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
+@utility btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 16px; border-radius: var(--radius-lg);
+  background: var(--color-paper); color: var(--color-ink); border: 1px solid var(--color-line);
+  transition: transform 500ms var(--ease-base), background-color 300ms var(--ease-base);
+  &:hover { background: var(--color-sand); transform: translateY(-1px); }
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+}
+@utility focus-ring {
+  &:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+}
+@utility focus-ring-dark {
+  &:focus-visible { outline: 2px solid var(--color-brand-bright); outline-offset: 2px; }
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* ---------- Surfaces ---------- */
+
+
+@keyframes swap-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@utility animate-swap {
+  animation: swap-in 500ms var(--ease-base) both;
+  @media (prefers-reduced-motion: reduce) { animation-name: fade-in; }
+}
+
+/* Two overlaid range inputs make a dual handle slider: only the thumbs take pointer events. */
+@utility range-thumb {
+  pointer-events: none;
+  appearance: none;
+  background: transparent;
+  &::-webkit-slider-runnable-track { background: transparent; }
+  &::-moz-range-track { background: transparent; }
+  &::-webkit-slider-thumb {
+    pointer-events: auto; appearance: none; width: 24px; height: 24px; border-radius: 9999px;
+    background: var(--color-paper); border: 2px solid var(--color-ink); box-shadow: var(--shadow-md); cursor: grab;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  &::-moz-range-thumb {
+    pointer-events: auto; width: 20px; height: 20px; border-radius: 9999px;
+    background: var(--color-paper); border: 2px solid var(--color-ink); box-shadow: var(--shadow-md); cursor: grab;
+  }
+  &:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+  &:focus-visible::-moz-range-thumb { outline: 2px solid var(--color-brand); outline-offset: 2px; }
 }

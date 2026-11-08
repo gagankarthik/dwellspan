@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [{ source: "/platform", destination: "/list-your-property", permanent: true }];
+  },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    qualities: [75, 85],
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
