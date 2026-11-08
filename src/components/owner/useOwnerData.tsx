@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import type { PassportSummary } from "@/lib/passportTypes";
+import type { ScreeningAnswer, ScreeningQuestion } from "@/lib/screening";
 import { DRAFT_KEY } from "../PropertyTypeDialog";
 import { useSession, type SessionUser } from "../session";
 import type { Fee } from "@/lib/listings";
@@ -19,6 +21,7 @@ export type OwnerListing = {
   availableUntil?: string;
   fees?: Fee[];
   deposit?: number;
+  questions?: ScreeningQuestion[];
 };
 export type RenterRecord = {
   rating: number | null;
@@ -41,6 +44,8 @@ export type ReceivedRequest = {
   createdAt: string;
   status: "sent" | "accepted" | "declined";
   record?: RenterRecord;
+  passport?: PassportSummary | null;
+  answers?: ScreeningAnswer[];
   rated: boolean;
   source: "renter" | "owner";
   terms?: PaymentTerms;

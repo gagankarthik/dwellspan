@@ -14,6 +14,7 @@ import { getHome, nearby } from "@/lib/homes";
 import { amenitiesOf, amenityLabel, extraFeatures } from "@/lib/amenities";
 import { SMOKING_LABEL, UTILITIES, leaseLabel } from "@/lib/listings";
 import { offers } from "@/lib/listingDetails";
+import { monthlyCost } from "@/lib/costs";
 
 export const metadata: Metadata = { title: "Home details" };
 
@@ -65,6 +66,8 @@ async function HomeDetail({ params }: Params) {
   const offer = home.offer ?? offers[home.id];
   const [first, ...rest] = home.photos;
   const unopt = (src: string) => src.startsWith("/api/");
+  const cost = monthlyCost(home);
+  const cityName = home.city.split(",")[0];
 
   return (
     <article className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -166,6 +169,54 @@ async function HomeDetail({ params }: Params) {
             </ul>
           </section>
 
+          <section aria-labelledby="cost-title" className="mt-12">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="cost-title" className="subhead text-ink">
+                  What you actually pay each month
+                </h2>
+                <p className="mt-2 max-w-[60ch] body-6 text-ink-2">
+                  {lease
+                    ? "Based on a 12 month lease. Rent alone hides the bills that come with an empty home, so we add them."
+                    : `Based on a ${Math.max(home.minMonths, 3)} month stay. One time fees are spread across the months you stay.`}
+                </p>
+              </div>
+              <p className="text-right">
+                <span className="heading-3 text-ink">${cost.total.toLocaleString("en-US")}</span>
+                <span className="body-6 text-ink-2"> / month all in</span>
+              </p>
+            </div>
+            <ul className="mt-4 flex flex-col rounded-2xl bg-sand px-6 py-2">
+              {cost.lines.map((x) => (
+                <li key={x.label} className="flex justify-between gap-4 border-b border-line py-2 body-6 last:border-0">
+                  <span className="text-ink-2">
+                    {x.label}
+                    {x.estimate && <span className="ml-2 rounded-full bg-paper px-2 py-0.5 caption-3 text-ink-3">Estimate</span>}
+                    {x.note && <span className="block caption-5 text-ink-3">{x.note}</span>}
+                  </span>
+                  <span className="text-ink">${x.amount.toLocaleString("en-US")}</span>
+                </li>
+              ))}
+              {cost.allUtilitiesIncluded && (
+                <li className="py-2 caption-5 text-ink-3">Utilities and wifi are included in the rent. Nothing to set up.</li>
+              )}
+            </ul>
+            {cost.estimated && (
+              <p className="mt-2 caption-5 text-ink-3">
+                Utility estimates use typical bills for a home this size in {cityName}. Your real bills depend on how you live.
+              </p>
+            )}
+            {home.fees.some((f) => /pet/i.test(f.name)) && (
+              <p className="mt-2 caption-5 text-ink-3">Pet rent is left out of this total. It only applies if you bring a pet; see Fees below.</p>
+            )}
+            <Link
+              href={`/compare?city=${encodeURIComponent(cityName)}&${lease ? "lease" : "stay"}=${home.id}`}
+              className="btn-secondary button-sm mt-4"
+            >
+              Compare with {lease ? "furnished stays" : "leases"} in {cityName} <ArrowIcon className="size-4" />
+            </Link>
+          </section>
+
           <section aria-labelledby="terms-title" className="mt-12">
             <h2 id="terms-title" className="subhead text-ink">
               Rental terms
@@ -249,6 +300,7 @@ async function HomeDetail({ params }: Params) {
             availableFrom={home.availableFrom}
             availableUntil={home.availableUntil}
             offer={offer}
+            questions={home.questions ?? []}
           />
         </aside>
       </div>

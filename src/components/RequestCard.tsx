@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { PASSPORT_FEE } from "@/lib/passportTypes";
 import { WarningIcon } from "@phosphor-icons/react";
 import { CheckIcon } from "./icons";
 import { DatePicker } from "./DatePicker";
 import { Select } from "./Select";
 import type { Fee } from "@/lib/listings";
+import type { ScreeningQuestion } from "@/lib/screening";
 import { openAuth, useSession } from "./session";
 
 type Props = {
@@ -21,40 +23,60 @@ type Props = {
   availableFrom: string;
   availableUntil?: string;
   offer?: string;
+  questions?: ScreeningQuestion[];
 };
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 const pretty = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
-export function RequestCard({ listingId, type, price, minMonths, deposit, depositRefundable, leaseTerms, fees, availableFrom, availableUntil, offer }: Props) {
+export function RequestCard({ listingId, type, price, minMonths, deposit, depositRefundable, leaseTerms, fees, availableFrom, availableUntil, offer, questions = [] }: Props) {
   const { user } = useSession();
   const lease = type === "yearly";
   const [moveIn, setMoveIn] = useState("");
   const terms = leaseTerms.length ? leaseTerms : [12];
   const [months, setMonths] = useState(String(lease ? (terms.includes(12) ? 12 : terms[0]) : Math.max(minMonths, 3)));
   const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<{ moveIn?: string; months?: string; form?: string }>({});
+  const [errors, setErrors] = useState<{ moveIn?: string; months?: string; form?: string; answers?: string }>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answerErrors, setAnswerErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
   const n = Number(months);
+  const [passport, setPassport] = useState<"unknown" | "none" | "draft" | "verified">("unknown");
+
+  useEffect(() => {
+    if (user?.role !== "renter") return;
+    let alive = true;
+    fetch("/api/passport", { cache: "no-store" })
+      .then((r) => r.json() as Promise<{ passport: unknown; verified: boolean }>)
+      .then((d) => alive && setPassport(d.verified ? "verified" : d.passport ? "draft" : "none"))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!user) return openAuth();
+    const missing = Object.fromEntries(questions.filter((q) => q.required && !answers[q.id]?.trim()).map((q) => [q.id, "Please answer this question."]));
+    setAnswerErrors(missing);
     if (!moveIn) return setErrors({ moveIn: "Pick a move in date." });
+    if (Object.keys(missing).length) return setErrors({ answers: "Answer the owner's questions." });
     setBusy(true);
     setErrors({});
     try {
       const res = await fetch("/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId, moveIn, months: n, message }),
+        body: JSON.stringify({ listingId, moveIn, months: n, message, answers }),
       });
-      const data = (await res.json().catch(() => ({}))) as { errors?: typeof errors; error?: string };
+      const data = (await res.json().catch(() => ({}))) as { errors?: typeof errors; error?: string; answerErrors?: Record<string, string> };
       if (!res.ok) {
         if (res.status === 401) return openAuth();
+        if (data.answerErrors) setAnswerErrors(data.answerErrors);
         return setErrors(data.errors ?? { form: data.error ?? "We could not send your request. Try again." });
       }
       setSent(true);
@@ -163,6 +185,59 @@ export function RequestCard({ listingId, type, price, minMonths, deposit, deposi
             />
           </div>
         )}
+        {questions.length > 0 && (
+          <fieldset className="flex flex-col gap-4 rounded-xl bg-sand p-4">
+            <legend className="sr-only">Questions from the owner</legend>
+            <p className="caption-3 text-ink" aria-hidden>
+              Questions from the owner
+            </p>
+            {questions.map((q) => {
+              const err = answerErrors[q.id];
+              const setA = (v: string) => {
+                setAnswers((a) => ({ ...a, [q.id]: v }));
+                setAnswerErrors((e) => ({ ...e, [q.id]: "" }));
+              };
+              return (
+                <div key={q.id}>
+                  <p id={`q-${q.id}`} className="body-6 text-ink">
+                    {q.text}
+                    {!q.required && <span className="text-ink-3"> (optional)</span>}
+                  </p>
+                  {q.kind === "text" ? (
+                    <input
+                      aria-labelledby={`q-${q.id}`}
+                      aria-invalid={Boolean(err)}
+                      value={answers[q.id] ?? ""}
+                      onChange={(e) => setA(e.target.value.slice(0, 500))}
+                      className="focus-ring mt-2 h-10 w-full rounded-lg border border-line bg-paper px-4 body-6 text-ink"
+                    />
+                  ) : (
+                    <div role="radiogroup" aria-labelledby={`q-${q.id}`} className="mt-2 flex flex-wrap gap-2">
+                      {(q.kind === "yesno" ? ["Yes", "No"] : (q.options ?? [])).map((o) => {
+                        const on = answers[q.id] === o;
+                        return (
+                          <button
+                            key={o}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            onClick={() => setA(o)}
+                            className={`focus-ring rounded-full border px-4 py-1 caption-3 transition-colors duration-300 ease-base ${
+                              on ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink hover:border-ink"
+                            }`}
+                          >
+                            {o}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {err && <p className="mt-1 caption-2 text-error">{err}</p>}
+                </div>
+              );
+            })}
+          </fieldset>
+        )}
         <div>
           <label htmlFor="r-msg" className="caption-3 text-ink">
             Message to the owner <span className="font-normal text-ink-3">(optional)</span>
@@ -181,6 +256,24 @@ export function RequestCard({ listingId, type, price, minMonths, deposit, deposi
       {errors.form && (
         <p role="alert" className="mt-4 flex items-start gap-2 rounded-lg bg-[#fdf1f0] px-4 py-2 body-6 text-error">
           <WarningIcon aria-hidden className="mt-2 size-4 shrink-0" /> {errors.form}
+        </p>
+      )}
+
+      {user?.role === "renter" && passport === "verified" && (
+        <p className="mt-6 flex items-start gap-2 rounded-xl bg-sand px-4 py-2 body-6 text-ink">
+          <CheckIcon className="mt-1 size-4 shrink-0 text-brand" strokeWidth={2.5} />
+          <span>
+            Applying with your verified Renter Passport. No application fee.
+          </span>
+        </p>
+      )}
+      {user?.role === "renter" && (passport === "none" || passport === "draft") && (
+        <p className="mt-6 rounded-xl bg-brand-soft px-4 py-2 body-6 text-ink">
+          {passport === "draft" ? "Finish your Renter Passport" : "Get a Renter Passport"} so the owner sees verified
+          checks with your request. ${PASSPORT_FEE} once, reused on every home.{" "}
+          <Link href={`/account/passport?next=/homes/${listingId}`} className="text-brand underline underline-offset-4">
+            {passport === "draft" ? "Finish it" : "Start it"}
+          </Link>
         </p>
       )}
 

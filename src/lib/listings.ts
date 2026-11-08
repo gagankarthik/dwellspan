@@ -1,4 +1,5 @@
 // Sample inventory for the landing page demo. Replace with live data.
+import type { ScreeningQuestion } from "./screening";
 
 export type StayType = "monthly" | "yearly";
 export type Tag = "furnished" | "schools" | "pets" | "workspace" | "parking" | "laundry" | "utilities" | "transit";
@@ -37,6 +38,8 @@ export type Listing = {
   utilitiesIncluded?: string[];
   /** "Managed by" name shown to renters when a property manager lists it */
   managedBy?: string;
+  /** Owner's own screening questions, answered with each request. */
+  questions?: ScreeningQuestion[];
 };
 
 export type SmokingPolicy = "no" | "outside" | "yes";
@@ -268,6 +271,59 @@ export const listings: Listing[] = [
     tags: ["schools", "pets", "parking", "laundry"],
     img: u("1580587771525-78b9dba3b914"),
     alt: "Large modern family home with a manicured lawn",
+  },
+  {
+    id: "east-austin-flat",
+    title: "One bedroom off East Cesar Chavez",
+    area: "East Austin",
+    city: "Austin, TX",
+    type: "yearly",
+    price: 1895,
+    minMonths: 6,
+    beds: 1,
+    baths: 1,
+    sqft: 720,
+    rating: 4.8,
+    reviews: 15,
+    tags: ["pets", "laundry", "transit"],
+    img: u("1586023492125-27b2c045efd7"),
+    alt: "Reading corner with an armchair beside a window",
+    leaseTerms: [6, 12],
+  },
+  {
+    id: "domain-suite",
+    title: "Furnished one bedroom by the Domain",
+    area: "North Burnet",
+    city: "Austin, TX",
+    type: "monthly",
+    price: 2890,
+    minMonths: 1,
+    beds: 1,
+    baths: 1,
+    sqft: 760,
+    rating: 4.9,
+    reviews: 24,
+    tags: ["furnished", "workspace", "utilities", "parking"],
+    img: u("1560448204-e02f11c3d0e2"),
+    alt: "Furnished living area with a sofa and dining corner",
+  },
+  {
+    id: "fremont-lease",
+    title: "Unfurnished one bedroom in Fremont",
+    area: "Fremont",
+    city: "Seattle, WA",
+    type: "yearly",
+    price: 2295,
+    minMonths: 6,
+    beds: 1,
+    baths: 1,
+    sqft: 700,
+    rating: 4.85,
+    reviews: 10,
+    tags: ["pets", "laundry", "transit"],
+    img: u("1493809842364-78817add7ffb"),
+    alt: "Living room with a sofa, plants, and natural light",
+    leaseTerms: [6, 12],
   },
 ];
 

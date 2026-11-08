@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, sameOrigin, userFromSession } from "@/lib/auth";
 import { getHome } from "@/lib/homes";
 import { addRequest, endDate, requestsFor } from "@/lib/requests";
+import { parseAnswers } from "@/lib/screening";
 
 export async function GET(request: NextRequest) {
   const user = await userFromSession(request.cookies.get(SESSION_COOKIE)?.value);
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Log in to send a request." }, { status: 401 });
 
   const body = (await request.json().catch(() => null)) as
-    | { listingId?: string; moveIn?: string; months?: number; message?: string }
+    | { listingId?: string; moveIn?: string; months?: number; message?: string; answers?: Record<string, string> }
     | null;
   const home = body?.listingId ? await getHome(body.listingId) : null;
   if (!home) return NextResponse.json({ error: "We could not find that home." }, { status: 404 });
@@ -48,7 +49,9 @@ export async function POST(request: NextRequest) {
     if (end.toISOString().slice(0, 10) > home.availableUntil) errors.months = "That stay runs past the home's last available date. Choose fewer months or an earlier move in.";
   }
   const message = (body?.message ?? "").trim().slice(0, 500);
-  if (Object.keys(errors).length) return NextResponse.json({ errors }, { status: 400 });
+  const screening = parseAnswers(home.questions ?? [], body?.answers);
+  if (Object.keys(screening.errors).length) errors.answers = "Answer the owner's questions.";
+  if (Object.keys(errors).length) return NextResponse.json({ errors, answerErrors: screening.errors }, { status: 400 });
 
   const saved = await addRequest({
     userId: user.id,
@@ -59,6 +62,7 @@ export async function POST(request: NextRequest) {
     moveIn,
     months,
     message,
+    answers: screening.answers,
   });
   return NextResponse.json({ request: saved }, { status: 201 });
 }

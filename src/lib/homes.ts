@@ -53,6 +53,7 @@ export async function getHome(id: string): Promise<HomeDetail | null> {
     smoking: row.smoking,
     utilitiesIncluded: row.utilitiesIncluded,
     managedBy: row.managedBy,
+    questions: row.questions ?? [],
   };
 }
 

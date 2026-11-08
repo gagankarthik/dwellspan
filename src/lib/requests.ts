@@ -1,5 +1,6 @@
 /** Booking and lease requests from renters. Stored in .data/requests.json. */
 import { addMonths, mutate, newId, readRows } from "./store";
+import type { ScreeningAnswer } from "./screening";
 import type { PaymentTerms } from "./terms";
 
 const FILE = "requests.json";
@@ -16,6 +17,8 @@ export type RentalRequest = {
   moveIn: string;
   months: number;
   message: string;
+  /** Answers to the owner's screening questions for this listing. */
+  answers?: ScreeningAnswer[];
   createdAt: string;
   status: RequestStatus;
   decidedAt?: string;

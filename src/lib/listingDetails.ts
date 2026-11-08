@@ -212,6 +212,48 @@ const extra: Record<
     deposit: 3675,
     petPolicy: "Dogs and cats welcome, $45 a month pet rent",
   },
+  "east-austin-flat": {
+    description:
+      "A one bedroom flat a block off East Cesar Chavez, with a washer and dryer in the unit and a bus to downtown at the corner. Unfurnished, so you can make it yours. Six and twelve month leases.",
+    rooms: ["reading", "kitchen", "bedroom", "living"],
+    features: ["Washer and dryer", "Dishwasher", "Central air", "Ceiling fans", "Street parking", "Bike storage"],
+    highlights: [
+      { title: "Short lease option", body: "Sign for six months if you are still deciding on Austin." },
+      { title: "Downtown in 10", body: "The 2 bus runs to downtown every ten minutes." },
+      { title: "Bring your dog", body: "Dogs and cats welcome with a small monthly fee." },
+    ],
+    availableFrom: "2026-12-01",
+    deposit: 1895,
+    petPolicy: "Dogs and cats welcome, $35 a month pet rent",
+  },
+  "domain-suite": {
+    description:
+      "A furnished one bedroom built for people starting a new job in North Austin. Utilities, gigabit wifi, and a reserved parking spot are included. A short walk to the Domain offices, shops, and the Red Line.",
+    rooms: ["lounge", "bedroom", "kitchen", "dining"],
+    features: ["Utilities included", "Gigabit wifi", "Reserved parking", "Building gym", "Keyless entry", "Linens and towels"],
+    highlights: [
+      { title: "One bill", body: "Rent covers power, water, wifi, and parking." },
+      { title: "Walk to work", body: "Most Domain offices are under ten minutes on foot." },
+      { title: "Stay or switch", body: "Extend month to month, or move to a lease nearby with the same profile." },
+    ],
+    availableFrom: "2026-11-15",
+    deposit: 500,
+    petPolicy: "No pets",
+  },
+  "fremont-lease": {
+    description:
+      "An unfurnished one bedroom on a quiet Fremont street, a short walk to the canal trail and the 40 and 62 buses. In unit laundry and a shared garden.",
+    rooms: ["living", "kitchen", "bedroom", "reading"],
+    features: ["Washer and dryer", "Dishwasher", "Shared garden", "Bike storage", "Hardwood floors", "Storage"],
+    highlights: [
+      { title: "Six month option", body: "A shorter first lease while you settle in." },
+      { title: "Canal trail", body: "Bike to South Lake Union in about fifteen minutes." },
+      { title: "Pet friendly", body: "Dogs and cats welcome." },
+    ],
+    availableFrom: "2027-01-01",
+    deposit: 2295,
+    petPolicy: "Dogs and cats welcome, $40 a month pet rent",
+  },
 };
 
 export function sampleHome(id: string): HomeDetail | null {
@@ -273,6 +315,9 @@ const KIND: Record<string, PropertyKind> = {
   "durham-bungalow": "house",
   lakeview: "apartment",
   "barton-creek": "house",
+  "east-austin-flat": "apartment",
+  "domain-suite": "apartment",
+  "fremont-lease": "apartment",
 };
 
 export type ListingMeta = {

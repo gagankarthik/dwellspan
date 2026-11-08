@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { CalendarIcon, CardIcon, HeartIcon, HelpIcon, HomeIcon, OverviewIcon, SearchIcon, SettingsIcon, WrenchIcon } from "../icons";
+import { CalendarIcon, CardIcon, HeartIcon, HelpIcon, HomeIcon, OverviewIcon, SearchIcon, SettingsIcon, UserIcon, WrenchIcon } from "../icons";
 import { ViewSkeleton, todayISO } from "../dashboard-ui";
 import { useSession, type SessionUser } from "../session";
 import { WorkspaceShell, type Alert } from "../WorkspaceShell";
@@ -99,7 +99,7 @@ export function RenterShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) router.replace("/login?next=/account");
+    if (!user) router.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     else if (user.role === "owner") router.replace("/dashboard");
   }, [loading, user, router]);
 
@@ -151,6 +151,7 @@ export function RenterShell({ children }: { children: ReactNode }) {
           {
             label: "Account",
             items: [
+              { href: "/account/passport", label: "Renter Passport", Icon: UserIcon },
               { href: "/account/saved", label: "Saved homes", Icon: HeartIcon },
               { href: "/account/settings", label: "Settings", Icon: SettingsIcon },
             ],

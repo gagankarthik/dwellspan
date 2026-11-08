@@ -26,6 +26,7 @@ import { IncomeChart, RankBars, Ring, SplitBar, Spark, SWATCH } from "./charts";
 import { addDays, incomeByMonth, ledgerTotals, occupancy } from "./metrics";
 import { AddPropertyButton, Card, Empty, Notice, OwnerReady, PageHeader, Pill, money, monthKey, pretty, shiftMonth, todayISO } from "./ui";
 import { send, useOwnerData, type OwnerListing } from "./useOwnerData";
+import { QuestionsEditor } from "./QuestionsEditor";
 
 /* ---------------- Overview ---------------- */
 
@@ -297,8 +298,8 @@ function Onboarding({ first, draftType }: { first: string; draftType: string }) 
                 <PlusIcon className="size-4" strokeWidth={2.25} /> List your first property
               </button>
             )}
-            <Link href="/list-your-property#features" className="focus-ring rounded body-4 text-ink underline underline-offset-4 hover:text-brand">
-              See what you get
+            <Link href="/list-your-property#earnings" className="focus-ring rounded body-4 text-ink underline underline-offset-4 hover:text-brand">
+              See what you could earn
             </Link>
           </div>
         </div>
@@ -344,6 +345,10 @@ function Properties() {
                 setNotice(msg);
                 reload();
               }}
+              onSaved={(msg) => {
+                setNotice(msg);
+                reload();
+              }}
             />
           ))}
         </ul>
@@ -352,8 +357,26 @@ function Properties() {
   );
 }
 
-function PropertyCard({ l, occ, earned, waiting, openTickets, onRemoved }: { l: OwnerListing; occ: number; earned: number; waiting: number; openTickets: number; onRemoved: (m: string) => void }) {
+function PropertyCard({
+  l,
+  occ,
+  earned,
+  waiting,
+  openTickets,
+  onRemoved,
+  onSaved,
+}: {
+  l: OwnerListing;
+  occ: number;
+  earned: number;
+  waiting: number;
+  openTickets: number;
+  onRemoved: (m: string) => void;
+  onSaved: (m: string) => void;
+}) {
   const [confirm, setConfirm] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const qCount = l.questions?.length ?? 0;
   const [busy, setBusy] = useState(false);
   return (
     <li className="flex flex-col overflow-hidden rounded-2xl border border-line/70 bg-paper shadow-sm">
@@ -394,6 +417,10 @@ function PropertyCard({ l, occ, earned, waiting, openTickets, onRemoved }: { l: 
           <Link href={`/dashboard/service?new=1&unit=${l.id}`} className="btn-secondary button-sm">
             Service
           </Link>
+          <button type="button" onClick={() => setAsking(true)} className="btn-secondary button-sm">
+            Questions{qCount ? ` (${qCount})` : ""}
+          </button>
+          {asking && <QuestionsEditor open onClose={() => setAsking(false)} listingId={l.id} title={l.title} initial={l.questions ?? []} onSaved={onSaved} />}
           <button type="button" onClick={() => setConfirm(true)} className="focus-ring ml-auto rounded-lg px-4 py-2 button-sm text-error transition-colors duration-300 ease-base hover:bg-[#fdf1f0]">
             Remove
           </button>

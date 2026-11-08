@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { monthlyCost } from "@/lib/costs";
 import { listings, type Listing } from "@/lib/listings";
 import { AMENITY_GROUPS, AMENITY_LIST, amenityLabel } from "@/lib/amenities";
 import { metaFor, offers, type ListingMeta, type PetKind, type PropertyKind } from "@/lib/listingDetails";
@@ -124,8 +126,9 @@ function matches(h: Home, f: Filters) {
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 const SORTS = [
   { value: "recommended", label: "Recommended" },
-  { value: "price-asc", label: "Price, low to high" },
-  { value: "price-desc", label: "Price, high to low" },
+  { value: "allin-asc", label: "All in cost, low to high" },
+  { value: "price-asc", label: "Rent, low to high" },
+  { value: "price-desc", label: "Rent, high to low" },
   { value: "rating", label: "Highest rated" },
 ];
 const KINDS: [PropertyKind, string][] = PROPERTY_TYPE_OPTIONS.map((t) => [t.value, t.label]);
@@ -190,6 +193,7 @@ export function Explore() {
 
   const sortHomes = (rows: Home[], sort: string) => {
     const out = [...rows];
+    if (sort === "allin-asc") out.sort((a, b) => monthlyCost(a).total - monthlyCost(b).total);
     if (sort === "price-asc") out.sort((a, b) => a.price - b.price);
     if (sort === "price-desc") out.sort((a, b) => b.price - a.price);
     if (sort === "rating") out.sort((a, b) => b.rating - a.rating);
@@ -279,6 +283,21 @@ export function Explore() {
             </button>
           </li>
         </ul>
+      )}
+
+      {results.some((h) => h.type === "monthly") && results.some((h) => h.type === "yearly") && (
+        <Link
+          href={`/compare${f.q ? `?city=${encodeURIComponent(f.q)}` : ""}`}
+          className="focus-ring group mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-sand px-6 py-4 transition-colors duration-300 ease-base hover:bg-brand-soft"
+        >
+          <span>
+            <span className="title-3 text-ink">Furnished stay or lease?</span>
+            <span className="mt-1 block body-6 text-ink-2">
+              Prices below include fees and estimated utilities. See the full math for your stay length, furniture included.
+            </span>
+          </span>
+          <span className="button-sm text-brand group-hover:underline group-hover:underline-offset-4">Compare the true cost</span>
+        </Link>
       )}
 
       {results.length > 0 ? (

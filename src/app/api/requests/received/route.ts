@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { firstNames } from "@/lib/auth";
 import { requireUser, noStore } from "@/lib/guard";
 import { allRatings, ledgerForRenter } from "@/lib/ops";
+import { passportsFor, summarize } from "@/lib/passport";
 import { allRequests, endDate } from "@/lib/requests";
 import { todayISO } from "@/lib/store";
 import { listByOwner } from "@/lib/userListings";
@@ -13,12 +14,15 @@ import { listByOwner } from "@/lib/userListings";
 export async function GET(request: NextRequest) {
   const g = await requireUser(request);
   if (g.error) return g.error;
-  const mine = new Set((await listByOwner(g.user.id)).map((l) => l.id));
+  const owned = await listByOwner(g.user.id);
+  const mine = new Set(owned.map((l) => l.id));
+  const rentOf = new Map(owned.map((l) => [l.id, l.price]));
   const all = await allRequests();
   const rows = all.filter((r) => mine.has(r.listingId)).reverse();
   const renterIds = [...new Set(rows.filter((r) => r.source !== "owner").map((r) => r.userId))];
   const names = await firstNames(renterIds);
   const ratings = await allRatings();
+  const passports = new Map((await passportsFor(renterIds)).map((p) => [p.userId, p]));
   const today = todayISO();
 
   const records = Object.fromEntries(
@@ -51,6 +55,7 @@ export async function GET(request: NextRequest) {
         endDate: endDate(r),
         renter: r.source === "owner" ? (r.renterName ?? "Tenant") : (names[userId] ?? "A renter"),
         record: records[userId],
+        passport: r.source === "owner" ? null : summarize(passports.get(userId) ?? null, rentOf.get(r.listingId) ?? 0, r.status === "accepted"),
         rated: ratings.some((x) => x.requestId === r.id && x.ownerId === g.user.id),
       })),
     },

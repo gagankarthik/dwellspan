@@ -65,9 +65,9 @@ export default function Home() {
             />
             <ul className="mx-auto mt-12 grid max-w-4xl gap-8 text-center sm:grid-cols-3">
               {[
-                ["Every fee up front", "See the full monthly cost before you book or sign. No surprises at move in."],
-                ["Move in ready", "Furnished stays arrive ready to live in, down to the door code on day one."],
-                ["One app for all of it", "Book or sign, pay rent, and request repairs from the same place."],
+                ["The honest math", "Every price includes fees and the utilities you would pay, so a furnished stay and a lease compare fairly."],
+                ["Screened once", "One Renter Passport works for a 3 month stay and a 12 month lease. No fee on every application."],
+                ["Land, then settle", "Start furnished while you learn the city, then move into a lease nearby with the same profile."],
               ].map(([t, b]) => (
                 <li key={t}>
                   <p className="subhead">{t}</p>
@@ -75,7 +75,13 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-            <p className="mt-12 text-center">
+            <p className="mt-12 flex flex-wrap justify-center gap-4 text-center">
+              <Link
+                href="/compare"
+                className="focus-ring-dark inline-flex items-center gap-2 rounded-lg bg-paper px-4 py-2 button-md text-ink shadow-lg transition-[transform,background-color] duration-300 ease-base hover:-translate-y-px hover:bg-sand active:scale-[0.98]"
+              >
+                Furnished or lease? Do the math <ArrowIcon className="size-4" />
+              </Link>
               <Link
                 href="/how-it-works"
                 className="focus-ring-dark inline-flex items-center gap-2 rounded-lg bg-paper px-4 py-2 button-md text-ink shadow-lg transition-[transform,background-color] duration-300 ease-base hover:-translate-y-px hover:bg-sand active:scale-[0.98]"

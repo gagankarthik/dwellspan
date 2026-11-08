@@ -11,6 +11,8 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/explore", label: "Find a home" },
       { href: "/explore?type=monthly", label: "Furnished stays" },
       { href: "/explore?type=yearly", label: "Long term leases" },
+      { href: "/compare", label: "Furnished or lease?" },
+      { href: "/account/passport", label: "Renter Passport" },
       { href: "/how-it-works", label: "How renting works" },
       { href: "/how-it-works#faq", label: "Renter FAQ" },
     ],
@@ -19,8 +21,8 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
     title: "Owners",
     links: [
       { href: "/list-your-property", label: "List your property" },
+      { href: "/list-your-property#earnings", label: "Earnings estimate" },
       { href: "/list-your-property#how", label: "How listing works" },
-      { href: "/list-your-property#features", label: "Owner tools" },
       { href: "/list-your-property#faq", label: "Owner FAQ" },
     ],
   },

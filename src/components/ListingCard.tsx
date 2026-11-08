@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { monthlyCost } from "@/lib/costs";
 import { leaseLabel, type Listing } from "@/lib/listings";
 import { HeartIcon, HomeIcon, StarIcon } from "./icons";
 import { useSaved } from "./saved";
@@ -29,6 +30,7 @@ export function ListingCard({
   const { isSaved, toggle } = useSaved();
   const saved = isSaved(l.id);
   const monthly = l.type === "monthly";
+  const cost = monthlyCost(l);
 
   const body = (
     <>
@@ -82,6 +84,18 @@ export function ListingCard({
       <p className="mt-2 caption-2 text-ink-2">
         <span className="body-4 text-ink">{l.price ? money(l.price) : "$0"}</span> / month
       </p>
+      {l.price > 0 && (
+        <p className="mt-1 caption-5 text-ink-3">
+          {cost.total === l.price ? (
+            "All in: utilities included, no monthly fees"
+          ) : (
+            <>
+              <span className="text-ink">{money(cost.total)}</span> / month all in
+              {cost.estimated ? " with est. utilities" : ""}
+            </>
+          )}
+        </p>
+      )}
     </>
   );
 
@@ -106,7 +120,7 @@ export function ListingCard({
             filled={saved}
             fill={saved ? "currentColor" : "rgb(20 33 82 / 0.35)"}
             strokeWidth={2}
-            className={`size-6 ${saved ? "text-brand" : "text-paper"}`}
+            className={`size-6 ${saved ? "text-[#e0245e]" : "text-paper"}`}
           />
         </button>
       )}

@@ -45,7 +45,8 @@ const GROUPS: Group[] = [
     page: "/how-it-works",
     items: [
       { href: "/how-it-works", label: "How renting works", note: "From search to move in" },
-      { href: "/how-it-works#compare", label: "Compare stay types", note: "Furnished stays and leases side by side" },
+      { href: "/compare", label: "Furnished or lease?", note: "The true cost of your stay, side by side" },
+      { href: "/account/passport", label: "Renter Passport", note: "Screened once, apply anywhere" },
       { href: "/how-it-works#app", label: "The renter app", note: "Door codes, rent, and repairs" },
       { href: "/how-it-works#faq", label: "Renter FAQ", note: "Fees, utilities, and ratings" },
     ],

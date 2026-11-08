@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Dialog } from "../Dialog";
-import { InboxIcon, StarIcon } from "../icons";
+import { CheckIcon, InboxIcon, StarIcon } from "../icons";
 import { initials } from "../session";
 import { defaultTerms, type PaymentTerms } from "@/lib/terms";
+import { PASSPORT_CHECKS, moveReasonLabel, type PassportSummary } from "@/lib/passportTypes";
 import { TermsFields } from "./TermsFields";
 import { AddPropertyButton, Empty, Notice, OwnerReady, PageHeader, Tabs, pretty, todayISO } from "./ui";
 import { send, useOwnerData, type ReceivedRequest } from "./useOwnerData";
@@ -117,6 +118,17 @@ function RequestItem({ r, onDone }: { r: ReceivedRequest; onDone: (text: string,
               </div>
             ))}
           </dl>
+          {r.answers && r.answers.length > 0 && (
+            <dl className="mt-4 flex max-w-[60ch] flex-col gap-2 rounded-xl bg-sand p-4">
+              <p className="title-4 text-ink">Answers to your questions</p>
+              {r.answers.map((a) => (
+                <div key={a.questionId}>
+                  <dt className="caption-5 text-ink-2">{a.question}</dt>
+                  <dd className="body-6 text-ink">{a.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           {r.message && <p className="mt-4 max-w-[60ch] rounded-xl border-l-4 border-brand bg-brand-soft/60 px-4 py-2 body-6 text-ink">“{r.message}”</p>}
           {r.status === "sent" && (
             <div className="mt-6 flex flex-wrap gap-2">
@@ -209,6 +221,7 @@ function RequestItem({ r, onDone }: { r: ReceivedRequest; onDone: (text: string,
           ) : (
             <p className="mt-4 caption-5 text-ink-2">No reviews yet. This may be their first stay through Dwellspan.</p>
           )}
+          {r.source === "renter" && <PassportBlock p={r.passport ?? null} />}
         </aside>
       </div>
     </li>
@@ -274,5 +287,94 @@ function RateRenter({ open, onClose, id, name, onDone }: { open: boolean; onClos
         </p>
       )}
     </Dialog>
+  );
+}
+
+const monthText = (ym: string) => new Date(`${ym}-01T00:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
+/** The renter's Passport as an owner sees it: checks, context, and income as a multiple of this unit's rent. */
+function PassportBlock({ p }: { p: PassportSummary | null }) {
+  if (!p)
+    return <p className="mt-4 rounded-xl bg-paper p-2 caption-5 text-ink-2">No Renter Passport yet. Ask them to verify before you accept.</p>;
+  return (
+    <div className="mt-4 rounded-xl bg-paper p-4">
+      <p className="flex flex-wrap items-center justify-between gap-2">
+        <span className="title-4 text-ink">Renter Passport</span>
+        <span className={`rounded-full px-2 py-0.5 caption-3 ${p.verified ? "bg-[#e7f5ec] text-[#17663a]" : "bg-[#fdf3e1] text-[#8a5300]"}`}>
+          {p.verified ? "Verified" : "Not verified"}
+        </span>
+      </p>
+      {p.verified && (
+        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          {PASSPORT_CHECKS.map(([k, label]) => (
+            <li key={k} className="flex items-center gap-1 caption-5 text-ink-2">
+              <CheckIcon className="size-3 text-[#17663a]" strokeWidth={2.5} /> {label}
+            </li>
+          ))}
+        </ul>
+      )}
+      <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 caption-5">
+        <dt className="text-ink-3">Income</dt>
+        <dd className="text-ink">{p.incomeToRent ? `${p.incomeToRent}x this rent` : "Not given"}</dd>
+        <dt className="text-ink-3">Moving for</dt>
+        <dd className="text-ink">{moveReasonLabel(p.moveReason)}</dd>
+        {p.employer && (
+          <>
+            <dt className="text-ink-3">Works at</dt>
+            <dd className="text-ink">{p.jobTitle ? `${p.jobTitle}, ${p.employer}` : p.employer}</dd>
+          </>
+        )}
+        {(p.employmentStart || p.contractEnd) && (
+          <>
+            <dt className="text-ink-3">Job dates</dt>
+            <dd className="text-ink">
+              {p.employmentStart ? `Since ${monthText(p.employmentStart)}` : ""}
+              {p.contractEnd ? `${p.employmentStart ? ", " : ""}contract ends ${monthText(p.contractEnd)}` : ""}
+            </dd>
+          </>
+        )}
+        <dt className="text-ink-3">Household</dt>
+        <dd className="text-ink">
+          {p.occupants} {p.occupants === 1 ? "person" : "people"}
+          {p.pets ? `, ${p.pets}` : ", no pets"}
+        </dd>
+        <dt className="text-ink-3">Vehicles</dt>
+        <dd className="text-ink">{p.vehicles || "None"}</dd>
+        <dt className="text-ink-3">Smoking</dt>
+        <dd className="text-ink">{p.smoker === "yes" ? "Smokes or vapes" : p.smoker === "no" ? "No" : "Not answered"}</dd>
+        <dt className="text-ink-3">Renting</dt>
+        <dd className="text-ink">
+          {p.yearsRenting ? `${p.yearsRenting} ${p.yearsRenting === 1 ? "year" : "years"}` : "First rental"}
+          {p.monthsAtAddress ? `, ${p.monthsAtAddress} mo at current address` : ""}
+        </dd>
+        {p.currentRent > 0 && (
+          <>
+            <dt className="text-ink-3">Pays now</dt>
+            <dd className="text-ink">${p.currentRent.toLocaleString("en-US")} a month</dd>
+          </>
+        )}
+        <dt className="text-ink-3">Evictions</dt>
+        <dd className={p.evicted === "yes" ? "text-error" : "text-ink"}>{p.evicted === "yes" ? "Yes, in last 7 years" : p.evicted === "no" ? "None reported" : "Not answered"}</dd>
+        <dt className="text-ink-3">Broken lease</dt>
+        <dd className="text-ink">{p.brokeLease === "yes" ? "Yes, in last 7 years" : p.brokeLease === "no" ? "None reported" : "Not answered"}</dd>
+      </dl>
+      {p.landlordName && (
+        <p className="mt-2 caption-5 text-ink-2">
+          <span className="text-ink-3">Landlord reference: </span>
+          {p.landlordName}
+          {p.landlordContact ? `, ${p.landlordContact}` : ""}
+        </p>
+      )}
+      {p.emergency ? (
+        <p className="mt-2 caption-5 text-ink-2">
+          <span className="text-ink-3">Emergency contact: </span>
+          {p.emergency.name}
+          {p.emergency.relation ? ` (${p.emergency.relation})` : ""}, {p.emergency.phone}
+        </p>
+      ) : (
+        <p className="mt-2 caption-5 text-ink-3">Emergency contact is shared once you accept.</p>
+      )}
+      {p.simulated && <p className="mt-2 caption-5 text-ink-3">Beta: checks are simulated.</p>}
+    </div>
   );
 }

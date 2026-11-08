@@ -4,6 +4,7 @@
  * and object storage before production.
  */
 import { randomBytes } from "node:crypto";
+import type { ScreeningQuestion } from "./screening";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { Fee, Listing, PetPolicy, SmokingPolicy, StayType, Tag } from "./listings";
@@ -50,12 +51,12 @@ async function writeAll(rows: StoredListing[]) {
 /** What renters may see. */
 export function toPublic(l: StoredListing): Listing & { description: string; propertyType: PropertyType } {
   const { id, title, area, city, type, price, minMonths, beds, baths, sqft, rating, reviews, tags, img, alt, description, propertyType } = l;
-  const { leaseTerms, amenities, fees, deposit, depositRefundable, availableFrom, availableUntil, occupants, smoking, pets, utilitiesIncluded, managedBy } = l;
+  const { leaseTerms, amenities, fees, deposit, depositRefundable, availableFrom, availableUntil, occupants, smoking, pets, utilitiesIncluded, managedBy, questions } = l;
   const gallery = (l.photos ?? []).slice(1).map((_, i) => `/api/listings/${l.id}/photo?i=${i + 1}`);
   return {
     id, title, area, city, type, price, minMonths, beds, baths, sqft, rating, reviews, tags, img, alt, description, propertyType,
     leaseTerms, amenities, fees, deposit, depositRefundable, availableFrom, availableUntil,
-    gallery, occupants, smoking, pets, utilitiesIncluded, managedBy,
+    gallery, occupants, smoking, pets, utilitiesIncluded, managedBy, questions,
   };
 }
 
@@ -133,6 +134,16 @@ export async function createListing(ownerId: string, input: NewListing, photos: 
   rows.push(row);
   await writeAll(rows);
   return row;
+}
+
+/** Replaces an owner's screening questions on one listing. */
+export async function setListingQuestions(ownerId: string, id: string, questions: ScreeningQuestion[]) {
+  const rows = await readAll();
+  const row = rows.find((l) => l.id === id);
+  if (!row || row.ownerId !== ownerId) return null;
+  row.questions = questions;
+  await writeAll(rows);
+  return toPublic(row);
 }
 
 export async function deleteListing(ownerId: string, id: string) {
